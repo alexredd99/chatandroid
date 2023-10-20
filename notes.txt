@@ -34,7 +34,7 @@ cmake -DCMAKE_TOOLCHAIN_FILE=/home/alexander/Android/Sdk/ndk/25.2.9519653/build/
 
 **** Build Local ****
 export CFLAGS="-std=c11 -W -export-dynamic"
-export CXXFLAGS="-std=c++14 -W -export-dynamic"
+export CXXFLAGS="-std=c++17 -W -export-dynamic"
 export TFLITE_BUILD_DIR="/home/alexander/workspace/chatandroid/deps/tflite_local"
 export TENSORFLOW_DIR="/home/alexander/workspace/chatandroid/deps/tensorflow"
 cmake \
