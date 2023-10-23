@@ -12,7 +12,7 @@ find_library(
 set(DEMO_SOURCES "")
 list(APPEND DEMO_SOURCES
     "src/main.cc"
-    "src/helpers.cc"
+    "src/tokenizer.cc"
 )
 set(LIB_PATHS "")
 list(APPEND LIB_PATHS
