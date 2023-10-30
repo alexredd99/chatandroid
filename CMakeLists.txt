@@ -54,6 +54,7 @@ link_directories(
 )
 
 add_executable(demo ${DEMO_SOURCES})
+target_compile_features(demo PRIVATE cxx_std_17)
 
 if(DEFINED ANDROID_ABI)
 target_link_libraries(demo
@@ -64,10 +65,6 @@ endif()
 
 target_link_libraries(demo
     ${LIBS}
-    absl_flags
-    #absl::flags
-    #absl::flags_parse
-    #absl::status
     libtensorflow-lite.a
     libfft2d_fftsg2d.a
     libfft2d_fftsg.a
