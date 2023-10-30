@@ -53,6 +53,8 @@ link_directories(
     "${TENSORFLOW_BUILD_DIR}/_deps/abseil-cpp-build/absl/status"
 )
 
+add_executable(demo ${DEMO_SOURCES})
+
 if(DEFINED ANDROID_ABI)
 target_link_libraries(demo
     android
@@ -60,7 +62,6 @@ target_link_libraries(demo
 )
 endif()
 
-add_executable(demo ${DEMO_SOURCES})
 target_link_libraries(demo
     ${LIBS}
     absl_flags
