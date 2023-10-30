@@ -4,5 +4,15 @@
 #include <sstream>
 #include <vector>
 
-std::map<std::string, std::vector<int>> tokenize_test(std::string vocab_path, std::string question, std::string context);
-std::string decode_test(unsigned int start_idx, unsigned int end_idx);
+// Pointer to Implementation Pattern
+class MobileBertTokenizer;
+
+class Tokenizer {
+public:
+  Tokenizer(std::string vocab_path);
+  std::map<std::string, std::vector<int>> tokenize(std::string question, std::string context);
+  std::string decode(unsigned int start_idx, unsigned int end_idx);
+
+private:
+  MobileBertTokenizer* bertTokenizer;
+};
