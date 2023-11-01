@@ -60,8 +60,10 @@ public:
 
   std::vector<std::string> tokenize(std::string input) {
     std::string lower_input = input;
-
+    // put text into lower case
     std::transform(lower_input.begin(), lower_input.end(), lower_input.begin(), ::tolower);
+
+    lower_input = split_on_punc(lower_input);
 
     std::vector<std::string> output_tokens;
 
@@ -80,6 +82,7 @@ public:
         std::string cur_substr;
         while (start < end) {
           std::string substr = token.substr(start, end - start);
+
           if (start > 0) {
             // Don't add ## to punctuation
             if (!((substr.length() == 1) && ispunct(substr.c_str()[0]))) {
@@ -129,6 +132,22 @@ private:
 
     return tokens;
   }
+
+  std::string split_on_punc(std::string input) {
+    std::string tokens;
+    std::string sChar;
+    for (unsigned int i = 0; i < input.length(); i++) {
+      sChar = input.substr(i, 1);
+
+      if (ispunct(sChar.c_str()[0])) {
+        tokens += " " + sChar + " ";
+      } else {
+        tokens += sChar;
+      }
+    }
+
+    return tokens;
+  }
 };
 
 class MobileBertTokenizer {
@@ -173,6 +192,8 @@ public:
     return encoding;
   }
 
+  //TODO: Use capitalize_next bool for proper capitalization
+  //TODO: Remove output not in clause
   std::string decode(unsigned int start_idx, unsigned int end_idx) {
     std::string output("");
 
@@ -181,12 +202,20 @@ public:
 
       if (token.compare(0, 2, "##") == 0) {
         token = token.substr(2, token.length() - 2);
-      } else if (i > 0) {
-        output.append(" ");
+      } else if ((token == cls_token_) || (token == sep_token_)) {
+        continue;
+      } else if (!ispunct(token.c_str()[0])) {
+        if (i > start_idx) {
+          token = " " + token;
+        } else {
+          token[0] = toupper(token[0]);
+        }
       }
 
       output.append(token);
     }
+
+    std::cout << std::endl;
 
     return output;
   }

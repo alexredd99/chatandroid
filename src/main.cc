@@ -18,6 +18,24 @@
 
 #include <iostream>
 
+//#define DEBUG 1
+
+void print_array(int* arr, unsigned int len, std::string name) {
+  std::cout << name << std::endl;
+  for (unsigned int i = 0; i < len; i++) {
+    std::cout << arr[i] << ", ";
+  }
+  std::cout << std::endl;
+}
+
+void print_array(float* arr, unsigned int len, std::string name) {
+  std::cout << name << std::endl;
+  for (unsigned int i = 0; i < len; i++) {
+    std::cout << arr[i] << ", ";
+  }
+  std::cout << std::endl;
+}
+
 unsigned int arg_max(float* input, size_t size) {
   unsigned int max = 0;
   for (unsigned int i = 0; i < size; i++) {
@@ -28,7 +46,7 @@ unsigned int arg_max(float* input, size_t size) {
   return max;
 }
 
-std::string getText(void) {
+std::string get_text(void) {
   std::string text("");
   std::string line("");
 
@@ -123,11 +141,15 @@ int main(int argc, char* argv[]) {
   std::cout << "You can continue asking questions on the same context." << std::endl;
 
   std::cout << "Context:" << std::endl;
-  std::string context = getText();
+  std::string context = get_text();
 
   while (true) {
     std::cout << "Question:" << std::endl;
-    std::string question = getText();
+    std::string question = get_text();
+
+    if (question.empty()) { // detect control d?
+      return 0;
+    }
 
     std::map<std::string, std::vector<int>> encoded;
 
@@ -150,6 +172,17 @@ int main(int argc, char* argv[]) {
 
     unsigned int end_idx = arg_max(end_logits, interpreter->output_tensor(0)->dims->data[1]);
     unsigned int start_idx = arg_max(start_logits, interpreter->output_tensor(1)->dims->data[1]);
+
+#ifdef DEBUG
+    print_array(input_ids, interpreter->input_tensor(0)->dims->data[1], "input_ids");
+    print_array(type_ids, interpreter->input_tensor(1)->dims->data[1], "type_ids");
+    print_array(attention_mask, interpreter->input_tensor(2)->dims->data[1], "attention_mask");
+
+    std::cout << "end_idx=" << end_idx << std::endl;
+    std::cout << "start_idx=" << start_idx << std::endl;
+
+    print_array(input_ids + start_idx, end_idx - start_idx + 1, "pred");
+#endif
 
     std::string output = tokenizer.decode(start_idx, end_idx);
     std::cout << "Answer: " << std::endl << output << std::endl << std::endl;
