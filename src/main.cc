@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <vector>
+#include <chrono>
 
 //#define DEBUG 1
 
@@ -150,7 +151,14 @@ int main(int argc, char* argv[]) {
       encoded["attention_mask"].end(),
       attention_mask);
 
+    auto start = std::chrono::high_resolution_clock::now();
     interpreter->Invoke();
+    auto stop = std::chrono::high_resolution_clock::now();
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    
+    std::cout << "Latency: " << duration.count() << "(ms)" << std::endl;
+
 
     float* end_logits = interpreter->typed_output_tensor<float>(0);
     float* start_logits = interpreter->typed_output_tensor<float>(1);
