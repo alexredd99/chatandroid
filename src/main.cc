@@ -15,36 +15,12 @@
 #include "absl/flags/usage.h"
 
 #include "tokenizer.h"
+#include "helpers.h"
 
 #include <iostream>
+#include <vector>
 
 //#define DEBUG 1
-
-void print_array(int* arr, unsigned int len, std::string name) {
-  std::cout << name << std::endl;
-  for (unsigned int i = 0; i < len; i++) {
-    std::cout << arr[i] << ", ";
-  }
-  std::cout << std::endl;
-}
-
-void print_array(float* arr, unsigned int len, std::string name) {
-  std::cout << name << std::endl;
-  for (unsigned int i = 0; i < len; i++) {
-    std::cout << arr[i] << ", ";
-  }
-  std::cout << std::endl;
-}
-
-unsigned int arg_max(float* input, size_t size) {
-  unsigned int max = 0;
-  for (unsigned int i = 0; i < size; i++) {
-    if (input[i] > input[max]) {
-      max = i;
-    }
-  }
-  return max;
-}
 
 std::string get_text(void) {
   std::string text("");
@@ -130,6 +106,12 @@ int main(int argc, char* argv[]) {
   //  interpreter->input_tensor(1), // segment/type ids
   //  interpreter->input_tensor(2)  // attention mask
   //};
+  const unsigned int input_ids_len = interpreter->input_tensor(0)->dims->data[1];
+  const unsigned int type_ids_len = interpreter->input_tensor(1)->dims->data[1];
+  const unsigned int attention_mask_len = interpreter->input_tensor(2)->dims->data[1];
+
+  const unsigned int end_logits_len = interpreter->output_tensor(0)->dims->data[1];
+  const unsigned int start_logits_len = interpreter->output_tensor(1)->dims->data[1];
 
   auto tokenizer = Tokenizer(vocab_path);
 
@@ -151,9 +133,12 @@ int main(int argc, char* argv[]) {
       return 0;
     }
 
-    std::map<std::string, std::vector<int>> encoded;
+    std::map<std::string, std::vector<int>> encoded = tokenizer.tokenize(question, context);
 
-    encoded = tokenizer.tokenize(question, context);
+    //TODO: fix this in future
+    memset(input_ids, 0, sizeof(int) * input_ids_len);
+    memset(type_ids, 0, sizeof(int) * type_ids_len);
+    memset(attention_mask, 0, sizeof(int) * attention_mask_len);
 
     std::copy(encoded["input_ids"].begin(),
       encoded["input_ids"].end(),
@@ -170,21 +155,24 @@ int main(int argc, char* argv[]) {
     float* end_logits = interpreter->typed_output_tensor<float>(0);
     float* start_logits = interpreter->typed_output_tensor<float>(1);
 
-    unsigned int end_idx = arg_max(end_logits, interpreter->output_tensor(0)->dims->data[1]);
-    unsigned int start_idx = arg_max(start_logits, interpreter->output_tensor(1)->dims->data[1]);
-
 #ifdef DEBUG
     print_array(input_ids, interpreter->input_tensor(0)->dims->data[1], "input_ids");
     print_array(type_ids, interpreter->input_tensor(1)->dims->data[1], "type_ids");
     print_array(attention_mask, interpreter->input_tensor(2)->dims->data[1], "attention_mask");
 
-    std::cout << "end_idx=" << end_idx << std::endl;
-    std::cout << "start_idx=" << start_idx << std::endl;
+    //unsigned int top5[5] = { 0 };
+    //arg_maxN(end_logits, interpreter->output_tensor(0)->dims->data[1], top5, 5);
+    //print_array(top5, 5, "sorted end_logits");
+    //arg_maxN(start_logits, interpreter->output_tensor(1)->dims->data[1], top5, 5);
+    //print_array(top5, 5, "sorted start_logits");
 
-    print_array(input_ids + start_idx, end_idx - start_idx + 1, "pred");
+
+    //std::cout << "end_idx=" << end_idx << std::endl;
+    //std::cout << "start_idx=" << start_idx << std::endl;
 #endif
 
-    std::string output = tokenizer.decode(start_idx, end_idx);
+    std::string output = tokenizer.decode(
+      start_logits, start_logits_len, end_logits, end_logits_len);
     std::cout << "Answer: " << std::endl << output << std::endl << std::endl;
   }
 
